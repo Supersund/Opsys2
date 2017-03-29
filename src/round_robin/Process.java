@@ -97,8 +97,6 @@ public class Process {
 
         statistics.totalNofTimesInReadyQueue += nofTimesInReadyQueue;
         statistics.totalNofTimesInIoQueue += nofTimesInIoQueue;
-
-        statistics.nofCompletedProcesses++;
 	}
 
 	public long getProcessId() {
@@ -106,7 +104,7 @@ public class Process {
 	}
 	
 	public long getRandomIoTime(){
-		return (long)(this.cpuTimeNeeded*0.10);
+		return (long)(this.cpuTimeNeeded*0.07);
 	}
 
 	public long getCpuTimeLeft(){
@@ -125,8 +123,23 @@ public class Process {
         this.timeToNextIoOperation = (long) ((Math.random() * (0.4*avgIoInterval)) + 0.8*avgIoInterval);
 
     }
+	public long getCpuTimeNeeded(){
+		return cpuTimeNeeded;
+	}
 
     public long getTimeToNextIoOperation(){
         return timeToNextIoOperation;
-}
+    }
+    public void addToTimeInCpu(long time){
+    	this.timeSpentInCpu+= time;
+    }
+    public void addToTimeInCpuQueue(long time){
+    	this.timeSpentInReadyQueue+=time;
+    }
+    public void addToTimeInIoQueue(long time){
+    	this.timeSpentWaitingForIo+= time;
+    }
+    public void addToTimeInIo(long time){
+    	this.timeSpentInIo += time;
+    }
 }

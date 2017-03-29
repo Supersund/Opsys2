@@ -34,7 +34,6 @@ public class Io {
      */
     public Event addIoRequest(Process requestingProcess, long clock) {
         this.ioQueue.add(requestingProcess);
-        System.out.println(requestingProcess.getRandomIoTime());
         if (this.activeProcess==null){
         	this.activeProcess = ioQueue.pop();
         	return new Event(5,clock+this.activeProcess.getRandomIoTime());
@@ -53,7 +52,9 @@ public class Io {
         if (this.activeProcess==null){
         	if (!ioQueue.isEmpty()){
         		this.activeProcess = ioQueue.pop();
-        		return new Event(5,clock+this.activeProcess.getRandomIoTime());
+        		long ioTime = this.activeProcess.getRandomIoTime();
+        		this.activeProcess.addToTimeInIo(ioTime);
+        		return new Event(5,clock+ioTime);
         	}
         }
         return null;
@@ -67,6 +68,9 @@ public class Io {
     	statistics.ioQueueLengthTime += ioQueue.size()*timePassed;
 		if (ioQueue.size() > statistics.ioQueueLargestLength) {
 			statistics.ioQueueLargestLength = ioQueue.size();
+		}
+		for (Process p: ioQueue){
+			p.addToTimeInIoQueue(timePassed);
 		}
     }
 

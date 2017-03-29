@@ -112,7 +112,6 @@ public class Simulator
 	 * @param event	The event to be processed.
 	 */
 	private void processEvent(Event event) {
-		System.out.println(eventQueue);
 		switch (event.getType()) {
 			case Event.NEW_PROCESS:
 				createProcess();
@@ -161,7 +160,6 @@ public class Simulator
 
 			// Since we haven't implemented the CPU and I/O device yet,
 			// we let the process leave the system immediately, for now.
-			memory.processCompleted(p);
 			// Try to use the freed memory:
 			transferProcessFromMemToReady();
 			// Update statistics
@@ -176,6 +174,7 @@ public class Simulator
 	 * Simulates a process switch.
 	 */
 	private void switchProcess() {
+		statistics.nofProcessSwitches++;
 		eventQueue.insertEvent(cpu.switchProcess(clock));
 		
 	}
@@ -184,6 +183,11 @@ public class Simulator
 	 * Ends the active process, and deallocates any resources allocated to it.
 	 */
 	private void endProcess() {
+		System.out.println(cpu.getActiveProcess().getCpuTimeNeeded());
+		memory.processCompleted(cpu.getActiveProcess());
+		cpu.getActiveProcess().addToTimeInCpu(cpu.getActiveProcess().getCpuTimeNeeded());
+		cpu.getActiveProcess().updateStatistics(statistics);
+		statistics.nofCompletedProcesses++;
 		eventQueue.insertEvent(cpu.activeProcessLeft(clock));
 	}
 
@@ -201,6 +205,7 @@ public class Simulator
 	 * is done with its I/O operation.
 	 */
 	private void endIoOperation() {
+		statistics.nofProcessedIoOperations++;
 		Process prev = io.getActiveProcess();
 		prev.calculateNextIoTime();
 		eventQueue.insertEvent(cpu.insertProcess(io.removeActiveProcess(), clock));

@@ -36,6 +36,7 @@ public class Cpu {
     public Event insertProcess(Process p, long clock) {
     	if (p!= null){
     		cpuQueue.add(p);
+    		statistics.totalNofTimesInReadyQueue+= 1;
     	}
         if (activeProcess == null){
         	if (!cpuQueue.isEmpty()){
@@ -44,20 +45,25 @@ public class Cpu {
         		if (nextProcess.getTimeToNextIoOperation()<nextProcess.getCpuTimeLeft()){
         			if (nextProcess.getTimeToNextIoOperation()<this.maxCpuTime){
         				this.activeProcess = cpuQueue.pop();
+        				nextProcess.setCputTimeLeft(nextProcess.getCpuTimeLeft()-nextProcess.getTimeToNextIoOperation());
+        				statistics.totalNofTimesInIoQueue++;
+        				statistics.totalBusyCpuTime+=this.activeProcess.getTimeToNextIoOperation();
         				return new Event(4, clock+this.activeProcess.getTimeToNextIoOperation());
         			}
         		}
         	
-	        	if (cpuQueue.peek().getCpuTimeLeft()<this.maxCpuTime){
+        		if (cpuQueue.peek().getCpuTimeLeft()<this.maxCpuTime){
 	        		this.activeProcess = cpuQueue.pop();
 	        		long cpuTimeLeft = this.activeProcess.getCpuTimeLeft();
 	        		this.activeProcess.setCputTimeLeft(0);
+	        		statistics.totalBusyCpuTime+=cpuTimeLeft;
 	        		return new Event(2,clock+cpuTimeLeft);
 	        	}
 	        	else{
 	        		this.activeProcess = cpuQueue.pop();
 	        		this.activeProcess.setCputTimeLeft(this.activeProcess.getCpuTimeLeft()-this.maxCpuTime);
 	        		this.activeProcess.setTimeToNextIoOperation(this.activeProcess.getTimeToNextIoOperation()-this.maxCpuTime);
+	        		statistics.totalBusyCpuTime+=maxCpuTime;
 	        		return new Event(3,clock+this.maxCpuTime);
 	        	}
         	}
@@ -110,6 +116,9 @@ public class Cpu {
     	statistics.cpuQueueLengthTime += cpuQueue.size()*timePassed;
 		if (cpuQueue.size() > statistics.cpuQueueLargestLength) {
 			statistics.cpuQueueLargestLength = cpuQueue.size();
+		}
+		for (Process p:cpuQueue){
+			p.addToTimeInCpuQueue(timePassed);
 		}
     }
 
